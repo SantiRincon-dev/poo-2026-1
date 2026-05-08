@@ -1,5 +1,5 @@
 from typing import List
-
+import random 
 
 class TypeRelations:
     def __init__(self) -> None:
@@ -152,7 +152,6 @@ Move: Debe contener los atributos de un ataque: name, type (string), power, accu
 class CombatEngine:
     @staticmethod
     def hit_accuracy(attack: Move, defender_types: List[str]):
-        import random 
         tp = TypeRelations()
         effect = tp.get_effectiveness(attack.type, defender_types)
         factor = random.random()
