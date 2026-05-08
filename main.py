@@ -113,7 +113,7 @@ class Move:
 
 
 class Moveset:
-    def __init__(self, moves: List[Move] = None):
+    def __init__(self, moves: List[Move] | None = None):
         self.moves: List[Move] = []
         if moves:
             for move in moves:
@@ -126,7 +126,7 @@ class Moveset:
             time.sleep(0.5)
             return True
         else:
-            print(f"El Pokémon intenta aprender {move.name}, pero ya conoce 4 movimientos.")
+            print(f"El Pokémon intenta aprender {move.name}, pero tiene 4 movimientos.")
             time.sleep(0.5)
             return False
 
@@ -165,12 +165,15 @@ class Moveset:
             print("El Pokémon aún no conoce ningún movimiento.")
             time.sleep(0.5)
         else:
-            print("\n" + "="*45)
+            print("\n" + "=" * 45)
             print("                 MOVIMIENTOS")
-            print("="*45)
+            print("=" * 45)
             for i, move in enumerate(self.moves):
-                print(f"[{i + 1}] {move.name.ljust(12)} | Tipo: {move.type.ljust(8)} | Poder: {str(move.power).ljust(3)} | PP: {move.pp}")
-            print("="*45 + "\n")
+                print(
+                    f"[{i + 1}] {move.name.ljust(12)} | Tipo: {move.type.ljust(8)}"
+                    f"| Poder: {str(move.power).ljust(3)} | PP: {move.pp}"
+                )
+            print("=" * 45 + "\n")
             time.sleep(0.5)
 
 
@@ -185,7 +188,7 @@ class Pokemon:
         defense: float = 0.5,
         level: int = 1,
         special_ability: str = "None",
-        moveset: Moveset = None,
+        moveset: Moveset | None = None,
     ) -> None:
         self.name = name
         self.types = types
@@ -200,9 +203,7 @@ class Pokemon:
     def get_stats(self) -> str:
         return f"{self.name} Stats: {self.stats}"
 
-    def attack(
-        self, target: "Pokemon", move: Move, relations: TypeRelations
-    ) -> None:
+    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> None:
         attack_type = move.type
 
         multiplier = relations.get_effectiveness(attack_type, target.types)
@@ -283,13 +284,29 @@ def main() -> None:
 
     # Crear Pokémon con moveset
     charmander_moveset = Moveset([flame_burst])
-    charmander = Pokemon("Charmander", ["Fire"], charmander_stats, life=20, attack=2, moveset=charmander_moveset)
+    charmander = Pokemon(
+        "Charmander",
+        ["Fire"],
+        charmander_stats,
+        life=20,
+        attack=2,
+        moveset=charmander_moveset,
+    )
 
     bulbasaur_moveset = Moveset([vine_whip])
-    bulbasaur = Pokemon("Bulbasaur", ["Grass"], bulbasaur_stats, life=20, defense=0.3, moveset=bulbasaur_moveset)
+    bulbasaur = Pokemon(
+        "Bulbasaur",
+        ["Grass"],
+        bulbasaur_stats,
+        life=20,
+        defense=0.3,
+        moveset=bulbasaur_moveset,
+    )
 
     squirtle_moveset = Moveset([water_gun])
-    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset)
+    squirtle = Pokemon(
+        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
+    )
 
     print("\n--- BATTLE 1 ---")
     charmander.attack(bulbasaur, flame_burst, relations)
