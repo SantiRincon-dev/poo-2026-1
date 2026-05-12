@@ -340,9 +340,7 @@ def main() -> None:
     )
 
     squirtle_moveset = Moveset([water_gun])
-    squirtle = Pokemon(
-        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
-    )
+    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset)
 
     print("\n--- BATTLE 1 ---")
     charmander.attack(bulbasaur, flame_burst, relations)
