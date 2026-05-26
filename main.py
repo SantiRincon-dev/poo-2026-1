@@ -538,7 +538,7 @@ def main() -> None:
         "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
     )
     trainer = Trainer("Ash", "Fire", [charmander])
- 
+
     print("\n--- BATTLE 1 ---")
     result = charmander.attack(bulbasaur, flame_burst, relations)
     if result:
