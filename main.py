@@ -1,5 +1,5 @@
 import random
-import time
+import time  # noqa: I001
 from typing import List
 
 
@@ -198,13 +198,13 @@ class Pokemon:
 
     def attack(self, target: "Pokemon", movement: Move) -> None:
         ce = CombatEngine()
-        _, multiplier = ce.hit_accuracy(movement, target.types)
+        is_able_to_attack, multiplier = ce.hit_accuracy(movement, target.types)
 
         print(f"{self.name} attacks {target.name} with {movement.name}")
 
         print(f"Effectiveness: x{multiplier}")
 
-        damage = ce.calculate_damage(self, target, movement)
+        damage = ce.calculate_damage(self, target, movement, is_able_to_attack, multiplier)
 
         return target.defender(damage)
 
@@ -249,10 +249,15 @@ class CombatEngine:
         ), effect  # si es mayor entonces el ataque acierta
 
     @staticmethod
-    def calculate_damage(attacker: Pokemon, defender: Pokemon, move: Move):
+    def calculate_damage(
+        attacker: Pokemon,
+        defender: Pokemon,
+        move: Move,
+        is_able_to_attack: bool,
+        multiplier: float,
+    ):
         att_stats = attacker.stats
         def_stats = defender.stats
-        is_able_to_attack, multiplier = CombatEngine.hit_accuracy(move, defender.types)
         # tener en cuenta quien tiene mas nivel
         rlevel = attacker.level / defender.level
         # tener en cuenta si atacante tiene mas ataque que la defensa del defensa
@@ -312,30 +317,30 @@ class Field:
             return [pokemon2, pokemon1]
         else:
             # Si la velocidad es igual, se decide al azar
-            return random.choice([(pokemon1, pokemon2), (pokemon2, pokemon1)])
+            return list(random.choice([(pokemon1, pokemon2), (pokemon2, pokemon1)]))
 
     def battle_finished(self, participants):
 
         for p in participants:
             if p.stats.hp <= 0:
                 return True
-            return False
+        return False
 
     def battlefield(self):
         participants = self.determine_turn_order()
         turn_index = 0
         battle_active = True
 
-        while battle_active and not self.battle_finished(participants):
-            print("\n" + "=" * 60)
-            print(f"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
-            print("\n" + "=" * 60)
+        print("\n" + "=" * 60)
+        print(f"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
+        print("\n" + "=" * 60)
 
+        while battle_active and not self.battle_finished(participants):
             attacker = participants[turn_index]
             defender = participants[1 - turn_index]
 
             print(
-                f"\n TURNO de {attacker.name.upper()} (Velocidad: {attacker.stats.speed}) CONTRA"
+                f"\n TURNO de {attacker.name.upper()} (Velocidad: {attacker.stats.speed}) CONTRA "
                 f"{defender.name.upper()} (Velocidad: {defender.stats.speed})"
             )
 
