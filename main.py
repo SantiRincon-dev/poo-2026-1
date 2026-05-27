@@ -143,9 +143,7 @@ class Moveset:
             return True
 
         else:
-            print(
-                f"The Pokémon tried to learn {move.name}, but it already knows 4 moves."
-            )
+            print(f"The Pokémon tried to learn {move.name}, but it already knows 4 moves.")
 
             time.sleep(0.5)
 
@@ -263,9 +261,7 @@ class Pokemon:
     def get_stats(self) -> str:
         return f"{self.name} Stats: {self.stats}"
 
-    def attack(
-        self, target: "Pokemon", move: Move, relations: TypeRelations
-    ) -> "Pokemon" | None:
+    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> "Pokemon" | None:
 
         damage = CombatEngine.calculate_damage(self, target, move)
 
@@ -352,9 +348,7 @@ class Pokemon:
                     f"\nSpeed: {self.stats.speed}"
                 )
 
-                print(
-                    f"\nEXP necessary for the next level: {self.experience_to_level_up}"
-                )
+                print(f"\nEXP necessary for the next level: {self.experience_to_level_up}")
         return None
 
     def defender(self, damage: float) -> None:
@@ -534,9 +528,7 @@ def main() -> None:
 
     squirtle_moveset = Moveset([water_gun])
 
-    squirtle = Pokemon(
-        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
-    )
+    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset)
     trainer = Trainer("Ash", "Fire", [charmander])
 
     print("\n--- BATTLE 1 ---")
