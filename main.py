@@ -298,10 +298,11 @@ class Trainer:
 
 
 class Field:
+    """Implementa el campo de batalla con sus características y efectos.
+
+    Determina el orden del primer turno a partir de la velocidad del Pokémon activo de cada
+    entrenador y luego alterna los turnos entre los participantes.
     """
-    Implementa el campo de batalla, con sus caracteristicas y efectos, parte de un entrenador,
-    sus pokemones y determina los turnos a partir de la velocidad de los pokemones,
-    ademas de determinar el orden de ataque y defensa."""
 
     def __init__(self, trainer1: Trainer, trainer2: Trainer):
         self.trainer1 = trainer1
