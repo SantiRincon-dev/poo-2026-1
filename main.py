@@ -77,10 +77,10 @@ class Stats:
 
     def __str__(self):
         return (
-            f"HP: {self.hp}, "
-            f"Attack: {self.attack}, Defense: {self.defense}, "
-            f"Sp. Attack: {self.special_attack}, Sp. Defense: {self.special_defense}, "
-            f"Speed: {self.speed}"
+            f"PS: {self.hp}, "
+            f"Ataque: {self.attack}, Defensa: {self.defense}, "
+            f"Ataque Esp.: {self.special_attack}, Defensa Esp.: {self.special_defense}, "
+            f"Velocidad: {self.speed}"
         )
 
 
@@ -194,19 +194,20 @@ class Pokemon:
         self.moveset = moveset if moveset else Moveset()
 
     def get_stats(self) -> str:
-        return f"{self.name} Stats: {self.stats}"
+        return f"{self.name} Estadísticas: {self.stats}"
 
     def attack(self, target: "Pokemon", movement: Move) -> None:
-        ce = CombatEngine()
-        is_able_to_attack, multiplier = ce.hit_accuracy(movement, target.types)
+        is_able_to_attack, multiplier = CombatEngine.hit_accuracy(movement, target.types)
 
-        print(f"{self.name} attacks {target.name} with {movement.name}")
+        print(f"{self.name} ataca a {target.name} con {movement.name}")
 
-        print(f"Effectiveness: x{multiplier}")
+        print(f"Efectividad: x{multiplier}")
 
-        damage = ce.calculate_damage(self, target, movement, is_able_to_attack, multiplier)
+        damage = CombatEngine.calculate_damage(
+            self, target, movement, is_able_to_attack, multiplier
+        )
 
-        return target.defender(damage)
+        target.defender(damage)
 
     def defender(self, damage: float) -> None:
         damage_received = damage * (1 - self.stats.defense)
@@ -216,8 +217,8 @@ class Pokemon:
         if self.stats.hp <= 0:
             self.stats.hp = 0
 
-        print(f"{self.name} received {damage_received:.2f} damage")
-        print(f"Remaining life: {self.stats.hp:.2f}")
+        print(f"{self.name} recibió {damage_received:.2f} de daño")
+        print(f"Vida restante: {self.stats.hp:.2f}")
 
     def evolve(self, new_level: int, new_ability: str) -> None:
         if new_level > self.level:
@@ -264,7 +265,7 @@ class CombatEngine:
         rdef = att_stats.attack / def_stats.defense
         # ataque -> si is_able_to_attack = 0 entonces ataque fallido, sino, calcular ataque
         damage = int(is_able_to_attack) * (rlevel * rdef * multiplier * move.power)
-        print(f"Damage: {damage}")
+        print(f"Daño: {damage}")
         return damage
 
 
@@ -286,6 +287,12 @@ class Trainer:
         else:
             print("No tienes Pokémon en tu equipo.")
             return None
+
+    def get_next_available_pokemon_index(self):
+        for index, pokemon in enumerate(self.pokemon[1:], start=1):
+            if pokemon.stats.hp > 0:
+                return index
+        return None
 
     def switch_pokemon(self, pokemon_index):
         if 0 <= pokemon_index < len(self.pokemon):
@@ -375,9 +382,24 @@ class Field:
 
             attacker.attack(defender, movement)
 
-            if self.battle_finished(participants):
-                print(f"\n¡{defender.name} ha sido derrotado! {attacker.name} gana la batalla.")
-                break
+            if defender.stats.hp <= 0:
+                defender_trainer = (
+                    self.trainer1 if defender in self.trainer1.pokemon else self.trainer2
+                )
+                next_pokemon_index = defender_trainer.get_next_available_pokemon_index()
+
+                if next_pokemon_index is None:
+                    print(f"\n¡{defender.name} ha sido derrotado! {attacker.name} gana la batalla.")
+                    break
+
+                defender_trainer.switch_pokemon(next_pokemon_index)
+                next_defender = defender_trainer.get_active_pokemon()
+                participants[1 - turn_index] = next_defender
+
+                print(
+                    f"\n{defender_trainer.nombre} envió a {next_defender.name} "
+                    f"para continuar la batalla."
+                )
 
             print(f"\n{'=' * 20}")
             print("¿Qué deseas hacer?")
@@ -400,7 +422,7 @@ class Field:
                         )
                         print(f"\nPokémon disponibles en el equipo de {trainer.nombre}:")
                         for i, pok in enumerate(trainer.pokemon):
-                            print(f"[{i + 1}] {pok.name} (Life: {pok.stats.hp:.1f})")
+                            print(f"[{i + 1}] {pok.name} (Vida: {pok.stats.hp:.1f})")
 
                         while True:
                             try:
