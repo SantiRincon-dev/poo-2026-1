@@ -290,7 +290,6 @@ class Pokemon:
         else:
             return None
 
-
     def gain_experience(self, amount: int) -> "Pokemon" | None:
 
         self.experience += amount
