@@ -272,9 +272,11 @@ class Pokemon:
 
         print(f"Effectiveness: x{multiplier}")
 
+        was_alive = not target.is_fainted()
+
         target.defender(damage)
 
-        if target.is_fainted():
+        if was_alive and target.is_fainted():
             print(f"\n{target.name} was defeated!")
 
             exp_gained = target.level * 5
@@ -287,6 +289,7 @@ class Pokemon:
             return self.gain_experience(exp_gained)
         else:
             return None
+
 
     def gain_experience(self, amount: int) -> "Pokemon" | None:
 
@@ -325,7 +328,7 @@ class Pokemon:
 
             if new:
                 print(
-                    f"\n{new.name} evolved into {new.level}\n"
+                    f"\n{new.name} evolved to level {new.level}\n"
                     f"--New Statistics:--\n"
                     f"HP: {new.stats.hp}\n"
                     f"Attack: {new.stats.attack}\n"
@@ -337,7 +340,7 @@ class Pokemon:
                 )
                 return new
             else:
-                print(f"\n{self.name} evolved into {self.level}!")
+                print(f"\n{self.name} leveled up to {self.level}!")
 
                 print(
                     f"\nNew Statistics:"
@@ -382,6 +385,8 @@ class Pokemon:
             if self.evolution == "Charmeleon":
                 new_pokemon = Charmeleon(level=self.level)
                 new_pokemon.moveset = self.moveset
+                new_pokemon.experience = self.experience
+                new_pokemon.experience_to_level_up = self.experience_to_level_up
                 print(f"{old_name} evolved into {new_pokemon.name}!")
                 return new_pokemon
 
@@ -396,14 +401,14 @@ class Charmeleon(Pokemon):
             stats=Stats(
                 hp=30,
                 attack=4,
-                defense=1,
+                defense=0.5,
                 special_attack=2,
                 special_defense=2,
                 speed=2,
             ),
             life=30,
             attack=4,
-            defense=1,
+            defense=0.5,
             level=level,
         )
 
@@ -536,6 +541,7 @@ def main() -> None:
     result = charmander.attack(bulbasaur, flame_burst, relations)
     if result:
         trainer.handle_evolution(charmander, result)
+        charmander = result
 
     print("\n--- BATTLE 2 ---")
     bulbasaur.attack(squirtle, vine_whip, relations)
