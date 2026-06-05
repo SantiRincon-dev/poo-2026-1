@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-import time
+import time  # noqa: I001
 from typing import List
 
 
