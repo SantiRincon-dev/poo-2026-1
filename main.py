@@ -66,12 +66,12 @@ class TypeRelations:
 class Stats:
     def __init__(
         self,
-        hp: float,
-        attack: float,
-        defense: float,
-        special_attack: float,
-        special_defense: float,
-        speed: float,
+        hp: float = 10.0,
+        attack: float = 1.0,
+        defense: float = 0.5,
+        special_attack: float = 1.0,
+        special_defense: float = 1.0,
+        speed: float = 1.0,
     ):
 
         self.hp = hp
@@ -230,11 +230,7 @@ class Pokemon:
         name: str,
         types: List[str],
         stats: Stats,
-        life: float = 10,
-        attack: float = 1,
-        defense: float = 0.5,
         level: int = 1,
-        special_ability: str = "None",
         moveset: Moveset | None = None,
         evolution: str | None = None,
         evolution_level: int | None = None,
@@ -242,17 +238,13 @@ class Pokemon:
 
         self.name = name
         self.types = types
-        self.life = life
-        self.attack_power = attack
         self.stats = stats
-        self.defense = defense
         self.level = level
 
         self.experience = 0
 
         self.experience_to_level_up = self.level * 10
 
-        self.special_ability = special_ability
 
         self.moveset = moveset if moveset else Moveset()
 
@@ -260,17 +252,13 @@ class Pokemon:
         self.evolution_level = evolution_level
 
     def get_stats(self) -> str:
-        return f"{self.name} Stats: {self.stats}"
+        return f"{self.name} Estadísticas: {self.stats}"
 
-    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> "Pokemon" | None:
+    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> None:
 
         damage = CombatEngine.calculate_damage(self, target, move)
 
-        multiplier = relations.get_effectiveness(move.type, target.types)
-
         print(f"{self.name} attacks {target.name} with {move.name}")
-
-        print(f"Effectiveness: x{multiplier}")
 
         was_alive = not target.is_fainted()
 
@@ -355,20 +343,18 @@ class Pokemon:
         return None
 
     def defender(self, damage: float) -> None:
+        damage_received = damage * (1 - self.stats.defense)
+        self.stats.hp = self.stats.hp - damage_received
 
-        damage_received = damage * (1 - self.defense)
-
-        self.life -= damage_received
-
-        if self.life < 0:
-            self.life = 0
+        if self.stats.hp <= 0:
+            self.stats.hp = 0
 
         print(f"{self.name} received {damage_received:.2f} damage")
 
-        print(f"Remaining life: {self.life:.2f}")
+        print(f"Remaining life: {self.stats.hp:.2f}")
 
     def is_fainted(self) -> bool:
-        return self.life <= 0
+        return self.stats.hp <= 0
 
     def evolve(self):
 
@@ -405,10 +391,6 @@ class Charmeleon(Pokemon):
                 special_defense=2,
                 speed=2,
             ),
-            life=30,
-            attack=4,
-            defense=0.5,
-            level=level,
         )
 
 
@@ -468,6 +450,12 @@ class Trainer:
 
             return None
 
+    def get_next_available_pokemon_index(self):
+        for index, pokemon in enumerate(self.pokemon[1:], start=1):
+            if pokemon.stats.hp > 0:
+                return index
+        return None
+
     def switch_pokemon(self, pokemon_index):
 
         if 0 <= pokemon_index < len(self.pokemon):
@@ -485,12 +473,171 @@ class Trainer:
                 self.pokemon[i] = new_pokemon
 
 
+class Field:
+    """Implementa el campo de batalla con sus características y efectos.
+
+    Determina el orden del primer turno a partir de la velocidad del Pokémon activo de cada
+    entrenador y luego alterna los turnos entre los participantes.
+    """
+
+    def __init__(self, trainer1: Trainer, trainer2: Trainer):
+        self.trainer1 = trainer1
+        self.trainer2 = trainer2
+
+    def determine_turn_order(self):
+        pokemon1 = self.trainer1.get_active_pokemon()
+        pokemon2 = self.trainer2.get_active_pokemon()
+
+        if pokemon1.stats.speed > pokemon2.stats.speed:
+            return [pokemon1, pokemon2]
+        elif pokemon2.stats.speed > pokemon1.stats.speed:
+            return [pokemon2, pokemon1]
+        else:
+            # Si la velocidad es igual, se decide al azar
+            return list(random.choice([(pokemon1, pokemon2), (pokemon2, pokemon1)]))
+
+    def battle_finished(self, participants):
+
+        for p in participants:
+            if p.stats.hp <= 0:
+                return True
+        return False
+
+    def battlefield(self):
+        participants = self.determine_turn_order()
+        turn_index = 0
+        battle_active = True
+        relations = TypeRelations()
+
+        print("\n" + "=" * 60)
+        print(f"BATALLA  : {self.trainer1.nombre} vs {self.trainer2.nombre}")
+        print("\n" + "=" * 60)
+
+        while battle_active and not self.battle_finished(participants):
+            attacker = participants[turn_index]
+            defender = participants[1 - turn_index]
+
+            print(
+                f"\n TURNO de {attacker.name.upper()} (Velocidad: {attacker.stats.speed}) CONTRA "
+                f"{defender.name.upper()} (Velocidad: {defender.stats.speed})"
+            )
+
+            print(f"\n Movimientos disponibles para {attacker.name}:")
+            for i, move in enumerate(attacker.moveset.get_moves()):
+                print(
+                    f"[{i + 1}] {move.name} | Tipo: {move.type} | Poder: {move.power}|PP: {move.pp}"
+                )
+
+            while True:
+                try:
+                    choice = (
+                        int(
+                            input(
+                                f"Selecciona el movimiento para {attacker.name}"
+                                f" (1-{len(attacker.moveset.get_moves())}): "
+                            )
+                        )
+                        - 1
+                    )
+                    if 0 <= choice < len(attacker.moveset.get_moves()):
+                        break
+                    else:
+                        raise ValueError("Número fuera de rango.")
+                except ValueError as e:
+                    print(f"Entrada no válida. {e}")
+
+            movement = attacker.moveset.get_moves()[choice]
+
+            print(f"{attacker.name} usa {movement.name}!")
+
+            attacker.attack(defender, movement, relations)
+
+            if defender.stats.hp <= 0:
+                defender_trainer = (
+                    self.trainer1 if defender in self.trainer1.pokemon else self.trainer2
+                )
+                next_pokemon_index = defender_trainer.get_next_available_pokemon_index()
+
+                if next_pokemon_index is None:
+                    print(f"\n¡{defender.name} ha sido derrotado! {attacker.name} gana la batalla.")
+                    break
+
+                defender_trainer.switch_pokemon(next_pokemon_index)
+                next_defender = defender_trainer.get_active_pokemon()
+                participants[1 - turn_index] = next_defender
+
+                print(
+                    f"\n{defender_trainer.nombre} envió a {next_defender.name} "
+                    f"para continuar la batalla."
+                )
+
+            print(f"\n{'=' * 20}")
+            print("¿Qué deseas hacer?")
+            print("[1] Continuar la batalla")
+            print("[2] Cambiar de Pokémon")
+            print("[3] Rendirse")
+            print(f"{'=' * 20}")
+            while True:
+                try:
+                    decision = int(input("Selecciona una opción (1-3): "))
+                    if decision == 1:
+                        # Continuar
+                        turn_index = 1 - turn_index
+                        time.sleep(1)
+                        break
+                    elif decision == 2:
+                        # Cambiar Pokémon
+                        trainer = (
+                            self.trainer1 if attacker in self.trainer1.pokemon else self.trainer2
+                        )
+                        print(f"\nPokémon disponibles en el equipo de {trainer.nombre}:")
+                        for i, pok in enumerate(trainer.pokemon):
+                            print(f"[{i + 1}] {pok.name} (Vida: {pok.stats.hp:.1f})")
+
+                        while True:
+                            try:
+                                pok_choice = (
+                                    int(
+                                        input(
+                                            "Selecciona Pokémon (1-{}): ".format(
+                                                len(trainer.pokemon)
+                                            )
+                                        )
+                                    )
+                                    - 1
+                                )
+                                if 0 <= pok_choice < len(trainer.pokemon):
+                                    trainer.switch_pokemon(pok_choice)
+                                    active_pokemon = trainer.get_active_pokemon()
+                                    print(f"¡{trainer.nombre} envió a {active_pokemon.name}!")
+                                    participants[turn_index] = active_pokemon
+
+                                    turn_index = 1 - turn_index
+                                    time.sleep(1)
+                                    break
+                                else:
+                                    raise ValueError("Índice inválido")
+                            except ValueError as e:
+                                print(f" {e}")
+                        break
+                    elif decision == 3:
+                        # Rendirse
+                        trainer = (
+                            self.trainer1 if attacker in self.trainer1.pokemon else self.trainer2
+                        )
+                        print(f"\n¡{trainer.nombre} se rindió!")
+                        battle_active = False
+                        break
+                    else:
+                        raise ValueError("Opción no válida (1-3)")
+                except ValueError as e:
+                    print(f" {e}")
+
+
 def main() -> None:
 
-    relations = TypeRelations()
-
     charmander_stats = Stats(
-        hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=1
+        hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=2
     )
 
     bulbasaur_stats = Stats(
@@ -513,8 +660,6 @@ def main() -> None:
         "Charmander",
         ["Fire"],
         charmander_stats,
-        life=20,
-        attack=2,
         moveset=charmander_moveset,
         evolution="Charmeleon",
         evolution_level=5,
@@ -526,27 +671,17 @@ def main() -> None:
         "Bulbasaur",
         ["Grass"],
         bulbasaur_stats,
-        life=20,
-        defense=0.3,
         moveset=bulbasaur_moveset,
     )
 
     squirtle_moveset = Moveset([water_gun])
+    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, moveset=squirtle_moveset)
 
-    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset)
-    trainer = Trainer("Ash", "Fire", [charmander])
+    entrenador1 = Trainer("Ash", "Team Rocket", [charmander, bulbasaur])
+    entrenador2 = Trainer("Misty", "Team Water", [squirtle])
 
-    print("\n--- BATTLE 1 ---")
-    result = charmander.attack(bulbasaur, flame_burst, relations)
-    if result:
-        trainer.handle_evolution(charmander, result)
-        charmander = result
-
-    print("\n--- BATTLE 2 ---")
-    bulbasaur.attack(squirtle, vine_whip, relations)
-
-    print("\n--- BATTLE 3 ---")
-    squirtle.attack(charmander, water_gun, relations)
+    campo = Field(entrenador1, entrenador2)
+    campo.battlefield()
 
 
 if __name__ == "__main__":
