@@ -245,7 +245,6 @@ class Pokemon:
 
         self.experience_to_level_up = self.level * 10
 
-
         self.moveset = moveset if moveset else Moveset()
 
         self.evolution = evolution
