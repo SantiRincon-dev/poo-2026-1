@@ -549,7 +549,11 @@ class Field:
 
             print(f"{attacker.name} usa {movement.name}!")
 
-            attacker.attack(defender, movement, relations)
+            evolved = attacker.attack(defender, movement, relations)
+            if evolved is not None:
+                trainer = self.trainer1 if attacker in self.trainer1.pokemon else self.trainer2
+                trainer.handle_evolution(attacker, evolved)
+                attacker = evolved; participants[turn_index] = evolved
 
             if defender.stats.hp <= 0:
                 defender_trainer = (
