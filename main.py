@@ -553,7 +553,8 @@ class Field:
             if evolved is not None:
                 trainer = self.trainer1 if attacker in self.trainer1.pokemon else self.trainer2
                 trainer.handle_evolution(attacker, evolved)
-                attacker = evolved; participants[turn_index] = evolved
+                attacker = evolved
+                participants[turn_index] = evolved
 
             if defender.stats.hp <= 0:
                 defender_trainer = (
