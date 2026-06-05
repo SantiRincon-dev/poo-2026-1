@@ -254,7 +254,7 @@ class Pokemon:
     def get_stats(self) -> str:
         return f"{self.name} Estadísticas: {self.stats}"
 
-    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> None:
+    def attack(self, target: "Pokemon", move: Move, relations: TypeRelations) -> "Pokemon" | None:
 
         damage = CombatEngine.calculate_damage(self, target, move)
 
