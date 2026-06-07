@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import random
 import time  # noqa: I001
 from typing import List
@@ -230,6 +231,7 @@ class Pokemon:
         name: str,
         types: List[str],
         stats: Stats,
+        stats_max: Stats | None = None,
         level: int = 1,
         moveset: Moveset | None = None,
         evolution: str | None = None,
@@ -249,6 +251,8 @@ class Pokemon:
 
         self.evolution = evolution
         self.evolution_level = evolution_level
+        self.stats_max = stats_max if stats_max else stats
+        self.stats_base = copy.copy(stats)
 
     def get_stats(self) -> str:
         return f"{self.name} Estadísticas: {self.stats}"
@@ -296,19 +300,29 @@ class Pokemon:
 
             self.experience_to_level_up = self.level * 10
 
-            self.stats.attack += random.randint(1, 3)
+            self.stats.attack = self.stats_base.attack + (self.level - 1) / 99 * (
+                self.stats_max.attack - self.stats_base.attack
+            )
 
-            self.stats.defense += round(random.uniform(0.2, 1.0), 2)
+            self.stats.defense = self.stats_base.defense + (self.level - 1) / 99 * (
+                self.stats_max.defense - self.stats_base.defense
+            )
 
-            self.stats.special_attack += random.randint(1, 3)
+            self.stats.special_attack = self.stats_base.special_attack + (self.level - 1) / 99 * (
+                self.stats_max.special_attack - self.stats_base.special_attack
+            )
 
-            self.stats.special_defense += round(random.uniform(0.2, 1.0), 2)
+            self.stats.special_defense = self.stats_base.special_defense + (self.level - 1) / 99 * (
+                self.stats_max.special_defense - self.stats_base.special_defense
+            )
 
-            self.stats.speed += round(random.uniform(0.2, 1.0), 2)
+            self.stats.speed = self.stats_base.speed + (self.level - 1) / 99 * (
+                self.stats_max.speed - self.stats_base.speed
+            )
 
-            self.stats.hp += random.randint(4, 8)
-
-            self.life = self.stats.hp
+            self.stats.hp = self.stats_base.hp + (self.level - 1) / 99 * (
+                self.stats_max.hp - self.stats_base.hp
+            )
 
             new = self.evolve()
 
@@ -389,6 +403,14 @@ class Charmeleon(Pokemon):
                 special_attack=2,
                 special_defense=2,
                 speed=2,
+            ),
+            stats_max=Stats(
+                hp=58,
+                attack=7,
+                defense=0.8,
+                special_attack=4,
+                special_defense=4,
+                speed=4,
             ),
         )
 
@@ -611,14 +633,17 @@ class Field:
                                     - 1
                                 )
                                 if 0 <= pok_choice < len(trainer.pokemon):
-                                    trainer.switch_pokemon(pok_choice)
-                                    active_pokemon = trainer.get_active_pokemon()
-                                    print(f"¡{trainer.nombre} envió a {active_pokemon.name}!")
-                                    participants[turn_index] = active_pokemon
+                                    if trainer.pokemon[pok_choice].stats.hp > 0:
+                                        trainer.switch_pokemon(pok_choice)
+                                        active_pokemon = trainer.get_active_pokemon()
+                                        print(f"¡{trainer.nombre} envió a {active_pokemon.name}!")
+                                        participants[turn_index] = active_pokemon
 
-                                    turn_index = 1 - turn_index
-                                    time.sleep(1)
-                                    break
+                                        turn_index = 1 - turn_index
+                                        time.sleep(1)
+                                        break
+                                    else:
+                                        raise ValueError("Ese Pokémon no puede batallar.")
                                 else:
                                     raise ValueError("Índice inválido")
                             except ValueError as e:
@@ -641,15 +666,27 @@ class Field:
 def main() -> None:
 
     charmander_stats = Stats(
-        hp=20, attack=2, defense=0.5, special_attack=1, special_defense=1, speed=2
+        hp=20, attack=2, defense=0.3, special_attack=1, special_defense=1, speed=2
+    )
+
+    charmander_stats_max = Stats(
+        hp=28, attack=3.5, defense=0.5, special_attack=2, special_defense=2, speed=3.5
     )
 
     bulbasaur_stats = Stats(
         hp=20, attack=1, defense=0.3, special_attack=1, special_defense=1, speed=1
     )
 
+    bulbasaur_stats_max = Stats(
+        hp=45, attack=3, defense=0.7, special_attack=4, special_defense=3.5, speed=2.5
+    )
+
     squirtle_stats = Stats(
         hp=20, attack=1, defense=0.5, special_attack=1, special_defense=1, speed=1
+    )
+
+    squirtle_stats_max = Stats(
+        hp=44, attack=3, defense=0.9, special_attack=3, special_defense=3.5, speed=2.5
     )
 
     flame_burst = Move(name="Flame Burst", type="Fire", power=5, accuracy=100, pp=25)
@@ -664,6 +701,7 @@ def main() -> None:
         "Charmander",
         ["Fire"],
         charmander_stats,
+        charmander_stats_max,
         moveset=charmander_moveset,
         evolution="Charmeleon",
         evolution_level=5,
@@ -675,11 +713,14 @@ def main() -> None:
         "Bulbasaur",
         ["Grass"],
         bulbasaur_stats,
+        bulbasaur_stats_max,
         moveset=bulbasaur_moveset,
     )
 
     squirtle_moveset = Moveset([water_gun])
-    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, moveset=squirtle_moveset)
+    squirtle = Pokemon(
+        "Squirtle", ["Water"], squirtle_stats, squirtle_stats_max, moveset=squirtle_moveset
+    )
 
     entrenador1 = Trainer("Ash", "Team Rocket", [charmander, bulbasaur])
     entrenador2 = Trainer("Misty", "Team Water", [squirtle])
