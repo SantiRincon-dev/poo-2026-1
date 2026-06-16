@@ -111,7 +111,7 @@ poke-repo/
 │   └── test_evolution.py
 ├── README.md                   
 ├── requirements.txt
-├── main.py
+└── main.py
 ```
 
 ### Responsabilidad de cada módulo
@@ -261,9 +261,9 @@ classDiagram
   Moveset *-- Move : 0..4
   Trainer *-- Pokemon : 1..6
   Field o-- Trainer : trainer1 / trainer2
-  Field ..> CombatEngine : usa
-  CombatEngine ..> TypeRelations : delega efectividad
-  Pokemon ..> CombatEngine : llama en attack()
+  Field ..> CombatEngine : uses
+  CombatEngine ..> TypeRelations : delegate effectiveness
+  Pokemon ..> CombatEngine : calls attack()
 ```
 
 ### Notación utilizada
