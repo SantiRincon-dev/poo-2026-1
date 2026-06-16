@@ -17,8 +17,8 @@ class Stats:
 
     def __str__(self):
         return (
-            f"HP: {self.hp}, ",
+            f"HP: {self.hp}, "
             f"Attack: {self.attack}, Defense: {self.defense}, "
-            f"Sp. Attack: {self.special_attack}, Sp. Defense: {self.special_defense}, ",
-            f"Speed: {self.speed}",
+            f"Sp. Attack: {self.special_attack}, Sp. Defense: {self.special_defense}, "
+            f"Speed: {self.speed}"
         )

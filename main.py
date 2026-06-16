@@ -1,7 +1,8 @@
+from scr.engine.type_relations import TypeRelations
 from scr.models.move import Move, Moveset
 from scr.models.pokemon import Pokemon
 from scr.models.stats import Stats
-from scr.engine.type_relations import TypeRelations
+
 
 def main() -> None:
     relations = TypeRelations()
@@ -43,9 +44,7 @@ def main() -> None:
     )
 
     squirtle_moveset = Moveset([water_gun])
-    squirtle = Pokemon(
-        "Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset
-    )
+    squirtle = Pokemon("Squirtle", ["Water"], squirtle_stats, life=20, moveset=squirtle_moveset)
 
     print("\n--- BATTLE 1 ---")
     charmander.attack(bulbasaur, flame_burst, relations)
