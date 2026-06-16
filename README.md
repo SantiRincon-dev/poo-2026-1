@@ -36,7 +36,7 @@ Cada clase protege su estado interno y expone solo lo necesario:
 - `Move` declara todos sus atributos como privados (`_name`, `_type`, `_power`,
   `_accuracy`, `_pp`) y los expone a través de `@property`, impidiendo
   modificaciones externas accidentales.
-- `Moveset` controla la lista interna de movimientos; la única forma de
+- `Moveset` controla toda la lista interna de movimientos; la única forma de
   agregar o reemplazar un movimiento es a través de sus métodos públicos
   (`add_move`, `replace_move`, `remove_move`), que aplican la restricción de
   máximo cuatro movimientos.
@@ -50,9 +50,8 @@ Cada clase modela únicamente los conceptos necesarios para su responsabilidad:
 
 - `Stats` encapsula el conjunto completo de estadísticas de combate en un
   único objeto, simplificando la firma del constructor de `Pokemon`.
-- `CombatEngine` abstrae toda la lógica de cálculo de daño y precisión en
-  métodos estáticos reutilizables, separando las reglas del juego de las
-  entidades que participan en él.
+- `CombatEngine` abstrae toda la lógica de cálculo de daño y precisión en nuevos
+  métodos.
 - `TypeRelations` abstrae la tabla de efectividades de tipos en una consulta
   simple (`get_effectiveness`), ocultando la estructura interna del diccionario.
 
@@ -62,12 +61,7 @@ La clase `Pokemon` actúa como clase base:
 
 - `Charmeleon` hereda de `Pokemon` y sobrescribe nombre, tipos y estadísticas
   predeterminadas, reutilizando toda la lógica de combate y evolución del padre.
-- Las subclases `FirePokemon`, `WaterPokemon` y `GrassPokemon` (diseño futuro)
-  fijan el tipo del Pokémon, permitiendo especializaciones sin duplicar código.
 
-La herencia permite que el sistema trate a cualquier especialización como un
-`Pokemon` genérico (polimorfismo implícito), por ejemplo al iterar el equipo
-de un `Trainer`.
 
 ### 4. Polimorfismo
 
@@ -84,8 +78,8 @@ a `Charmeleon` durante la batalla, el campo reemplaza la referencia en
 - **Composición fuerte** (`*--`): `Moveset` posee sus `Move`; un movimiento
   pertenece a un único Moveset.
 - **Agregación** (`o--`): `Trainer` gestiona una lista de Pokémon, pero los
-  Pokémon pueden existir independientemente. `Field` referencia los dos
-  Pokémon activos sin apropiarse de ellos.
+  Pokémon pueden existir independientemente. `Field` referencia a los dos `Trainer` sin apropiarse de ellos;
+los Pokémon activos se obtienen dinámicamente durante la batalla.
 
 ---
 
@@ -97,28 +91,27 @@ poke-repo/
 │   ├── __init__.py
 │   ├── models/
 │   │   ├── __init__.py
-│   │   ├── pokemon.py        # Clase Pokemon y subclases (Charmeleon, …)
-│   │   ├── pokemon_types.py  # FirePokemon, WaterPokemon, GrassPokemon
-│   │   ├── move.py           # Move y Moveset
-│   │   ├── stats.py          # Stats
-│   │   └── trainer.py        # Trainer
+│   │   ├── pokemon.py       
+│   │   ├── pokemon_types.py 
+│   │   ├── move.py          
+│   │   ├── stats.py         
+│   │   └── trainer.py       
 │   ├── engine/
 │   │   ├── __init__.py
-│   │   ├── combat_engine.py  # CombatEngine (cálculo de daño y precisión)
-│   │   ├── type_relations.py # TypeRelations (tabla de tipos)
-│   │   └── field.py          # Field (bucle de batalla)
+│   │   ├── combat_engine.py  
+│   │   ├── type_relations.py 
+│   │   └── field.py          
 │   └── utils/
 │       ├── __init__.py
-│       └── constants.py      # Constantes globales (MAX_TEAM_SIZE, MAX_MOVES, …)
+│       └── constants.py      
 ├── tests/
 │   ├── __init__.py
 │   ├── test_combat_engine.py
 │   ├── test_battle_flow.py
 │   └── test_evolution.py
-├── main.py                   # Punto de entrada
-├── README.md
+├── README.md                   
 ├── requirements.txt
-└── pyproject.toml
+├── main.py
 ```
 
 ### Responsabilidad de cada módulo
@@ -126,14 +119,13 @@ poke-repo/
 | Módulo | Responsabilidad |
 |---|---|
 | `models/pokemon.py` | Entidad principal: atributos, combate, evolución y ganancia de experiencia |
-| `models/pokemon_types.py` | Subclases tipadas que fijan el tipo del Pokémon |
 | `models/move.py` | Representación de movimientos y colección de hasta 4 moves |
 | `models/stats.py` | Contenedor de estadísticas de combate |
 | `models/trainer.py` | Gestión de equipo (hasta 6 Pokémon) y cambio de activo |
 | `engine/combat_engine.py` | Cálculo de daño, comprobación de precisión |
 | `engine/type_relations.py` | Tabla de efectividades entre tipos |
 | `engine/field.py` | Bucle de turnos, orden de ataque, fin de batalla |
-| `utils/constants.py` | Valores globales reutilizables (evita magic numbers) |
+| `utils/constants.py` | Valores globales reutilizables |
 
 ---
 
@@ -156,141 +148,122 @@ poke-repo/
 
 ```
 Field.battlefield()
-  └─ determine_turn_order()      # por velocidad, aleatorio si empate
+  └─ determine_turn_order() #se determina por velocidad, es aleatorio si hay empate
   └─ (bucle de turnos)
        ├─ attacker elige Move
        ├─ CombatEngine.calculate_damage()
        │     └─ TypeRelations.get_effectiveness()
        ├─ defender.defender(damage)
-       ├─ attacker.gain_experience()  ← si el defensor cae
+       ├─ attacker.gain_experience()  
        │     └─ level_up()
-       │           └─ evolve()        ← si alcanza el nivel de evolución
-       └─ Trainer.switch_pokemon()    ← si el defensor cae y queda equipo
+       │           └─ evolve()        
+       └─ Trainer.switch_pokemon() # solo si defender.is_fainted() 
 ```
 
 ---
 
-## Diagrama UML
+## Diagrama UML del proyecto:
 
-El diagrama completo se encuentra en `uml_diagram.mermaid` en la raíz del
-repositorio. A continuación se muestra la versión embebida:
 
 ```mermaid
 classDiagram
-    direction TB
+  direction TB
 
-    %% ─── Composición / Agregación ───────────────────────────────────────────
-    Trainer "1" *-- "1..6" Pokemon : owns / manages
-    Pokemon "1" *-- "1" Stats       : has stats
-    Pokemon "1" *-- "1" Moveset     : has moveset
-    Moveset "1" *-- "0..4" Move     : contains
-    Field "1" o-- "2" Pokemon       : active_pokemon
+  class TypeRelations {
+    -type_chart : dict
+    +get_effectiveness(attack_type, defender_types) float
+  }
 
-    %% ─── Dependencias ────────────────────────────────────────────────────────
-    Field      --> CombatEngine    : uses
-    CombatEngine --> Pokemon       : reads
-    CombatEngine --> Move          : reads power / accuracy
-    CombatEngine --> TypeRelations : delegates effectiveness
+  class Stats {
+    +hp : float
+    +attack : float
+    +defense : float
+    +special_attack : float
+    +special_defense : float
+    +speed : float
+  }
 
-    %% ─── Herencia ────────────────────────────────────────────────────────────
-    Pokemon <|-- Charmeleon
-    Pokemon <|-- FirePokemon
-    Pokemon <|-- WaterPokemon
-    Pokemon <|-- GrassPokemon
+  class Move {
+    -_name : str
+    -_type : str
+    -_power : float
+    -_accuracy : int
+    -_pp : int
+    +name() str
+    +type() str
+    +power() float
+    +accuracy() int
+    +pp() int
+  }
 
-    class Stats {
-        +hp: float
-        +attack: float
-        +defense: float
-        +special_attack: float
-        +special_defense: float
-        +speed: float
-    }
+  class Moveset {
+    -moves : list~Move~
+    +add_move(move) bool
+    +remove_move(index) bool
+    +replace_move(index, new_move) bool
+    +get_moves() list~Move~
+    +show_moves() None
+  }
 
-    class Move {
-        -_name: str
-        -_type: str
-        -_power: float
-        -_accuracy: int
-        -_pp: int
-        +name «property»
-        +type «property»
-        +power «property»
-        +accuracy «property»
-        +pp «property»
-    }
+  class Pokemon {
+    +name : str
+    +types : list~str~
+    +stats : Stats
+    +level : int
+    +experience : int
+    +experience_to_level_up : int
+    +evolution : str
+    +evolution_level : int
+    +stats_base : Stats
+    +stats_max : Stats
+    +moveset : Moveset
+    +attack(target, move, relations) Pokemon
+    +gain_experience(amount) Pokemon
+    +level_up() Pokemon
+    +defender(damage) None
+    +is_fainted() bool
+    +evolve() Pokemon
+    +get_stats() str
+  }
 
-    class Moveset {
-        -moves: list[Move]
-        +add_move(move) bool
-        +remove_move(index) bool
-        +replace_move(index, new_move) bool
-        +get_moves() list[Move]
-        +show_moves() void
-    }
+  class Charmeleon {
+    +__init__(level)
+  }
 
-    class Pokemon {
-        +name: str
-        +types: list[str]
-        +stats: Stats
-        +level: int
-        +experience: int
-        +moveset: Moveset
-        +evolution: str | None
-        +attack(target, move, relations) Pokemon|None
-        +gain_experience(amount) Pokemon|None
-        +level_up() Pokemon|None
-        +defender(damage) void
-        +is_fainted() bool
-        +evolve() Pokemon|None
-    }
+  class CombatEngine {
+    <<static>>
+    +hit_accuracy(attack, defender_types)$ tuple
+    +calculate_damage(attacker, defender, move)$ float
+  }
 
-    class Charmeleon {
-        +name = "Charmeleon"
-        +types = ["Fire"]
-        +__init__(level)
-    }
+  class Trainer {
+    +nombre : str
+    +team : str
+    +pokemon : list~Pokemon~
+    +add_pokemon(pokemon) None
+    +get_active_pokemon() Pokemon
+    +get_next_available_pokemon_index() int
+    +switch_pokemon(pokemon_index) None
+    +handle_evolution(old_pokemon, new_pokemon) None
+  }
 
-    class FirePokemon {
-        +types = ["Fire"]
-    }
+  class Field {
+    +trainer1 : Trainer
+    +trainer2 : Trainer
+    +determine_turn_order() list~Pokemon~
+    +battle_finished(participants) bool
+    +battlefield() None
+  }
 
-    class WaterPokemon {
-        +types = ["Water"]
-    }
-
-    class GrassPokemon {
-        +types = ["Grass"]
-    }
-
-    class TypeRelations {
-        -type_chart: dict
-        +get_effectiveness(attack_type, defender_types) float
-    }
-
-    class CombatEngine {
-        <<static>>
-        +hit_accuracy(attack, defender_types) tuple
-        +calculate_damage(attacker, defender, move) float
-    }
-
-    class Trainer {
-        +nombre: str
-        +team: str
-        +pokemon: list[Pokemon]
-        +add_pokemon(pokemon) void
-        +get_active_pokemon() Pokemon|None
-        +switch_pokemon(index) void
-        +handle_evolution(old, new) void
-    }
-
-    class Field {
-        +trainer1: Trainer
-        +trainer2: Trainer
-        +determine_turn_order() list[Pokemon]
-        +battle_finished(participants) bool
-        +battlefield() void
-    }
+  Pokemon <|-- Charmeleon
+  Pokemon *-- Stats : stats / stats_base / stats_max
+  Pokemon *-- Moveset : moveset
+  Moveset *-- Move : 0..4
+  Trainer *-- Pokemon : 1..6
+  Field o-- Trainer : trainer1 / trainer2
+  Field ..> CombatEngine : usa
+  CombatEngine ..> TypeRelations : delega efectividad
+  Pokemon ..> CombatEngine : llama en attack()
 ```
 
 ### Notación utilizada
@@ -312,21 +285,28 @@ classDiagram
 ### Requisitos previos
 
 - Python 3.10 o superior
-- `pip` o `uv` disponible en el PATH
+- `pip` disponible en el PATH
 
 ### Instalación
 
+Clona el repositorio e instala las dependencias:
+
 ```bash
-# Clonar el repositorio
 git clone https://github.com/fegonzalez7/poo-2026-1.git
 cd poo-2026-1
+```
 
-# (Recomendado) Crear entorno virtual
+Crea un entorno virtual (recomendado):
+
+```bash
 python -m venv .venv
 source .venv/bin/activate        # Linux / macOS
-# .venv\Scripts\activate         # Windows
+.venv\Scripts\activate           # Windows
+```
 
-# Instalar dependencias
+Instala las dependencias:
+
+```bash
 pip install -r requirements.txt
 ```
 
@@ -336,8 +316,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Durante la ejecución el juego pedirá por consola qué movimiento usar en cada
-turno y si deseas continuar, cambiar de Pokémon o rendirte.
+Durante la ejecución el juego pedirá por consola qué movimiento usar en cada turno y si deseas continuar, cambiar de Pokémon o rendirte.
 
 ### Ejecutar los tests
 
@@ -347,14 +326,14 @@ python -m pytest tests/
 
 ### Verificar estilo y tipos
 
-```bash
-# Formato (ruff)
-ruff format --check .
+Comprobación de formato con ruff:
 
-# Tipos (mypy)
-mypy .
+```bash
+ruff format --check .
 ```
 
-El pipeline de CI (`.github/workflows/python_checks.yaml`) ejecuta estos
-mismos pasos automáticamente en cada push o pull request contra `main` y `dev`.
+Verificación de tipos con mypy:
 
+```bash
+mypy .
+```
