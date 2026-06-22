@@ -1,5 +1,6 @@
 from typing import List
 
+
 class TypeRelations:
     def __init__(self) -> None:
         self.type_chart: dict[str, dict[str, float]] = {

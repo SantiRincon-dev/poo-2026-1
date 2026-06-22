@@ -1,8 +1,10 @@
-from typing import List
 import random
+from typing import List
+
+from scr.engine.type_relations import TypeRelations
 from scr.models.move import Move
 from scr.models.pokemon import Pokemon
-from scr.engine.type_relations import TypeRelations
+
 
 class CombatEngine:
     """

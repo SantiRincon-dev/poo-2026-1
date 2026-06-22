@@ -1,5 +1,7 @@
 from typing import List
+
 from scr.models.pokemon import Pokemon
+
 
 class Trainer:
     def __init__(self, nombre: str, team: str, pokemon: List[Pokemon]):

@@ -1,7 +1,9 @@
 from typing import List
-from scr.models.move import Move, Moveset
+
 from scr.engine.type_relations import TypeRelations
+from scr.models.move import Move, Moveset
 from scr.models.stats import Stats
+
 
 class Pokemon:
     def __init__(
@@ -59,4 +61,3 @@ class Pokemon:
             print(f"{self.name} evolved to level {self.level}")
         else:
             print("Cannot evolve to same or lower level")
-

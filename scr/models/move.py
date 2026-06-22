@@ -30,6 +30,7 @@ class Move:
     def pp(self) -> int:
         return self._pp
 
+
 class Moveset:
     def __init__(self, moves: List[Move] | None = None):
         self.moves: List[Move] = []

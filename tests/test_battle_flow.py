@@ -42,11 +42,6 @@ class TestTypeEffectiveness(unittest.TestCase):
         self.assertLess(defender.life, life_before)
 
     def test_fire_not_effective_vs_water(self, _):
-        fire_move = Move("Ember", "Fire", 5, 100, 25)
-        water_move = Move("Water Gun", "Water", 5, 100, 25)
-        attacker = make_pokemon("Charmander", ["Fire"], attack=2)
-        defender = make_pokemon("Squirtle", ["Water"])
-
         multiplier = self.relations.get_effectiveness("Fire", ["Water"])
         self.assertEqual(multiplier, 0.5)
 

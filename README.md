@@ -285,55 +285,54 @@ classDiagram
 ### Requisitos previos
 
 - Python 3.10 o superior
-- `pip` disponible en el PATH
+- Administrador de paquetes de Python **`uv`** instalado en el sistema
 
-### Instalación
+### Instalación y Configuración
 
-Clona el repositorio e instala las dependencias:
-
+1. Primero debemos clonar el repositorio y navega a la carpeta del proyecto:
 ```bash
 git clone https://github.com/fegonzalez7/poo-2026-1.git
 cd poo-2026-1
 ```
 
-Crea un entorno virtual (recomendado):
-
+2. Como segundo paso, se crea el entorno virtual aislado utilizando `uv`:
 ```bash
-python -m venv .venv
-source .venv/bin/activate        # Linux / macOS
-.venv\Scripts\activate           # Windows
+uv venv
 ```
 
-Instala las dependencias:
-
+3. Luego, se instala las dependencias lógicas del proyecto y las herramientas de desarrollo (`pytest`, `ruff`, `mypy`):
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
+uv pip install pytest mypy ruff
 ```
 
 ### Ejecutar la simulación
 
+Para iniciar el simulador de combate Pokémon, ejecuta el script principal a través del entorno virtual:
 ```bash
-python main.py
+uv run python main.py
 ```
 
-Durante la ejecución el juego pedirá por consola qué movimiento usar en cada turno y si deseas continuar, cambiar de Pokémon o rendirte.
+Durante la ejecución, el juego pedirá por consola qué movimiento usar en cada turno y si deseas continuar, cambiar de Pokémon o rendirte.
 
 ### Ejecutar los tests
 
+Para validar que los componentes y la lógica funcionen correctamente:
 ```bash
-python -m pytest tests/
+uv run python -m pytest
 ```
 
-### Verificar estilo y tipos
+### Aseguramiento de Calidad 
 
-Comprobación de formato con ruff:
+El proyecto utiliza un pipeline estricto para validar el formato y el tipado, este se puede comprobar localmente con:
 
-```bash
-ruff format --check .
-```
+- **Verificación de Estilo y Formato (Ruff):**
+  ```bash
+  uv run ruff format --check .
+  uv run ruff check .
+  ```
 
-Verificación de tipos con mypy:
-
-```bash
-mypy .
-```
+- **Verificación de Tipado Estático (Mypy):**
+  ```bash
+  uv run mypy .
+  ```
